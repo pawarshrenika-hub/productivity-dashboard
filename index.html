@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Productivity</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      color: white;
+      background: radial-gradient(circle at bottom, #0d0d2b, #000010, #000);
+      text-align: center;
+      overflow-x: hidden;
+    }
+    #sky {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -2;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: rgba(0,0,40,0.6);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(138,43,226,0.7);
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      font-size: 2.5rem;
+      text-shadow: 0 0 15px #7d5fff, 0 0 30px #00f2fe;
+    }
+    input {
+      width: 65%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      box-shadow: inset 0 0 10px #4facfe;
+      outline: none;
+    }
+    button {
+      padding: 12px 25px;
+      margin: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      background: linear-gradient(45deg, #7d5fff, #00f2fe, #4facfe);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 20px #4facfe, 0 0 40px #7d5fff;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px #00f2fe, 0 0 60px #7d5fff;
+    }
+    .meter {
+      position: relative;
+      width: 160px;
+      height: 160px;
+      margin: 20px auto;
+    }
+    .meter svg { transform: rotate(-90deg); }
+    .meter circle { fill: none; stroke-width: 12; stroke-linecap: round; }
+    .meter .bg { stroke: rgba(255,255,255,0.2); }
+    .meter .progress {
+      stroke: url(#gradient);
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      transition: stroke-dashoffset 1s ease;
+    }
+    .meter .value {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    .feedback { font-size: 1.3rem; margin: 15px 0; }
+    .goal-list {
+      margin-top: 20px;
+      text-align: left;
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 15px;
+    }
+    .goal-list h2 { text-align: center; color: #00f2fe; }
+    .goal-list li {
+      margin: 8px 0;
+      padding: 8px;
+      background: rgba(0,0,50,0.6);
+      border-radius: 10px;
+      display: flex; justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="sky"></canvas>
+  <div class="container">
+    <h1> Productivity Dashboard</h1>
+    <input type="text" id="goalInput" placeholder="Enter your goal...">
+    <button onclick="analyzeGoal()">Submit Goal</button>
+
+    <div class="meter">
+      <svg width="160" height="160">
+        <defs>
+          <linearGradient id="gradient" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7d5fff"/>
+            <stop offset="100%" stop-color="#00f2fe"/>
+          </linearGradient>
+        </defs>
+        <circle class="bg" cx="80" cy="80" r="70"></circle>
+        <circle class="progress" cx="80" cy="80" r="70"></circle>
+      </svg>
+      <div class="value" id="meterValue">0%</div>
+    </div>
+
+    <div class="feedback" id="feedback">✨ Waiting for your goal...</div>
+
+    <div class="goal-list">
+      <h2>📝 Your Goals</h2>
+      <ul id="goalItems"></ul>
+    </div>
+  </div>
+
+  <!-- Button sound -->
+  <audio id="clickSound">
+    <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+  </audio>
+
+  <script>
+    function playClick() {
+      const sound = document.getElementById("clickSound");
+      sound.currentTime = 0; sound.play();
+    }
+
+    const wordValues = {
+      "happy": 50,
+      "joy": 60,
+      "success": 80,
+      "achieve": 75,
+      "smile": 65,
+      "win": 85,
+      "love": 90,
+      "dream": 70,
+      "hope": 55,
+      "kind": 60,
+      "excitement":84,
+      "good":75
+    };
+
+    function analyzeGoal() {
+      playClick();
+      const input = document.getElementById("goalInput");
+      const goal = input.value.trim().toLowerCase();
+      if (!goal) return;
+
+      let score = 0;
+      for (const word in wordValues) {
+        if (goal.includes(word)) { score = wordValues[word]; break; }
+      }
+      updateMeter(score);
+
+      const feedback = document.getElementById("feedback");
+      if (score === 0) {
+        feedback.innerText = "🤔 Try adding more positivity!";
+        feedback.style.color = "#ff4d4d";
+      } else if (score < 60) {
+        feedback.innerText = "🌈 Good start, keep going!";
+        feedback.style.color = "orange";
+      } else if (score < 80) {
+        feedback.innerText = "✨ Great goal, you’re shining!";
+        feedback.style.color = "#7d5fff";
+      } else {
+        feedback.innerText = "🚀 Amazing! You're unstoppable!";
+        feedback.style.color = "#00f2fe";
+      }
+
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${input.value}</span><span>${score}%</span>`;
+      document.getElementById("goalItems").appendChild(li);
+      input.value = "";
+    }
+
+    function updateMeter(value) {
+      const circle = document.querySelector(".progress");
+      const text = document.getElementById("meterValue");
+      const radius = 70;
+      const circumference = 2 * Math.PI * radius;
+      let offset = circumference - (value / 100) * circumference;
+      circle.style.strokeDasharray = circumference;
+      circle.style.strokeDashoffset = offset;
+      text.innerText = value + "%";
+    }
+
+    // Galaxy stars
+    const canvas = document.getElementById("sky");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const stars = [];
+    for (let i = 0; i < 150; i++) {
+      stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2, d: Math.random()*2});
+    }
+    function drawStars() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      for (let s of stars) {
+        ctx.moveTo(s.x, s.y);
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2, true);
+      }
+      ctx.fill(); updateStars(); requestAnimationFrame(drawStars);
+    }
+    function updateStars() {
+      for (let s of stars) {
+        s.y += s.d;
+        if (s.y > canvas.height) { s.y = 0; s.x = Math.random()*canvas.width; }
+      }
+    }
+    drawStars();
+  </script>
+</body>
+</html>
